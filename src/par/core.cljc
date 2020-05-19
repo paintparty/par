@@ -19,13 +19,15 @@
       "\n\n"]))
 
 #?(:clj
-   (defmacro !? [v] ))
+   (defmacro !? [v]))
 
 #?(:clj
    (defmacro ? [v]
-     `(apply js/console.log (?* ~v (quote ~v)))))
+     `(do (apply js/console.log (?* ~v (quote ~v)))
+          ~v)))
 
 #?(:clj
    (defmacro ?c [v]
-   `(apply println (?* ~v (quote ~v)))))
+   `(do (apply println (?* ~v (quote ~v)))
+        ~v)))
 
