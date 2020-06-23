@@ -17,7 +17,7 @@ Add as a dependency to your project:
 And setup your namespace imports:
 
 ```clojure
-(ns my-cljs-ns
+(ns my-cljs-ns.core
   (:require
     [par.core :refer-macros [? ?c]]))
 ```
