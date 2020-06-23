@@ -11,7 +11,7 @@ Intended to wrap existing values in your source code so they can be observed wit
 Add as a dependency to your project:
 
 ```clojure
-[par "0.1.0"]
+[par "0.1.2"]
 ```
 
 And setup your namespace imports:
