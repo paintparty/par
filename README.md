@@ -34,6 +34,10 @@ The `?` and `?c` macros give you `js/console.log` and `println`, respectively. U
 '(+ 1 2)
 => 3
 
+
+
+
+
 (?c (+ 1 2))
 
 ;; The above would result in the following output in the terminal:
