@@ -28,11 +28,19 @@ And setup your namespace imports:
 The `?` and `?c` macros give you `js/console.log` and `println`, respectively. Use `?c` if you are in a `.clj`, or `.cljc` file.
 
 ```clojure
-(? (+ 1 2)) ; => 3
+(? (+ 1 2))
 
-;; The above will print the following to js/console.log:
-(+ 1 2)
+;; The above would result in the following output in Chrome DevTools Console:
+'(+ 1 2)
 => 3
+
+(?c (+ 1 2))
+
+;; The above would result in the following output in the terminal:
+(+ 1 2)
+
+=> 3
+
 ```
 
 
