@@ -2,43 +2,87 @@
 
 A Clojure(Script) library designed to print-and-return values.
 
-It will print what you are evaluating, and the result of evaluating it.
-
-Intended to wrap existing values in your source code so they can be observed without changing the execution of the program.
+Intended to wrap existing forms in your source code so they can be observed without changing the execution of the program.
 
 ## Usage
 
 Add as a dependency to your project:
 
 ```clojure
-[par "0.1.0"]
+[org.clojars.paintparty/par "1.0.0"]
 ```
 
-And setup your namespace imports:
+Import into your namespace:
 
 ```clojure
-(ns my-cljs-ns
+(ns myns.core
   (:require
-    [par.core :refer-macros [? ?c]]))
+    [par.core :refer [? !? ?+ !?+]]))
+
+;; :refer-macros syntax will work as well.
+(ns myns.core
+  (:require
+    [par.core :refer-macros [? !? ?+ !?+]]))
 ```
 
+<br>
 
-## Printing
+### `?`
 
-The `?` and `?c` macros give you `js/console.log` and `println`, respectively. Use `?c` if you are in a `.clj`, or `.cljc` file.
+Use the `par.core/?` macro to print the form and resulting value. You should expect the same console output whether you are using Clojure or ClojureScript:
 
-```clojure
-(? (+ 1 2)) ; => 3
+```Clojure
+(? (+ 1 2))
+```
+The above will print:
 
-;; The above will print the following to js/console.log:
-(+ 1 2)
-=> 3
+```Clojure
+(+ 1 2) => 3
 ```
 
+<br>
+
+**If you would like to add some commentary to your logs:**
+```Clojure
+(? "Note to self" (+ 1 2))
+```
+The above will prepend the first argument to the output.<br>
+The output will be italicized, with a leading "; ".<br>
+The form that is being evaluated will **not** be printed:
+
+```Clojure
+; Note to self
+ => 3
+```
+<br>
+
+**If you would like both the commentary and form to be printed:**
+
+```Clojure
+(?+ "Note to self" :form (+ 1 2))
+```
+The above would print:
+
+```Clojure
+; Note to self
+(+ 1 2) => 3
+```
+
+<br>
+
+### `?+`
+When you want to log from inside a `defmacro`, or inside a function that is being called by a `defmacro`, the `?+` macro should be used. It has the exact same signature as `?`.
+
+<br>
+
+###  `!?` and `!?+`
+`par.core/!?` and `par.core/!?+` are both no-op macros, useful when you want to temporarily silence the printing on a form that is already wrapped by `?` or `?+`.
+
+<br>
 
 ## License
 
-Copyright © 2020 JC
+Copyright © 2020-2021 Jeremiah Coyle
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
