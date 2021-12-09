@@ -26,7 +26,7 @@
 
 (defn format-val [x]
   (cond (string? x) (str "\"" x "\"")
-        (nil? x) 'nil
+        (nil? x) "nil"
         :else x))
 
 (defn find-index [pred coll]
