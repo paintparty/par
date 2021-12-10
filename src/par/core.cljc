@@ -26,7 +26,7 @@
 
 (defn format-val [x]
   (cond (string? x) (str "\"" x "\"")
-        (nil? x) "nil"
+        (nil? x) :____nil____
         :else x))
 
 (defn find-index [pred coll]
@@ -51,23 +51,24 @@
        ret*))
     x))
 
+(defn print-nil [s]
+  (string/replace s #":____nil____" "nil"))
+
 (defn formatted-str
   "If called from ?, use zprint.
    If called from ?+, use pprint."
   [x* ?+?]
-  (let [x (if (coll? x*) (walk/postwalk anonymize x*) x*)]
-    (string/replace
-     (if ?+?
-       (string/replace (with-out-str (pprint (format-val x))) #"\n$" "")
-       (let [ret (zp (str (format-val x)))]
-         (if (re-find #"^clojure\.lang\..*\n@.*$" ret)
-          "zprint-error"
-          ret)))
-     #"\(fn\* "
-     "#(")))
+  (let [x (if (coll? x*) (walk/postwalk anonymize x*) x*)
+        formatted (format-val x)
+        ret* (if ?+?
+               (-> formatted pprint with-out-str (string/replace #"\n$" ""))
+               (let [ret (-> x format-val str zp)]
+                 (if (re-find #"^clojure\.lang\..*\n@.*$" ret) "zprint-error" ret)))
+        ret (-> ret* print-nil (string/replace #"\(fn\* " "#("))]
+    ret))
 
 (defn long-form? [x]
-  (when x
+  (when (string? x)
     (or (re-find #"\n" x)
         (> (count x) 30))))
 
@@ -120,9 +121,16 @@
       "\n"])))
 
 #?(:clj
-   (defmacro !? [v] `(do ~v)))
+   (defmacro !? [& args]
+     #_(println "\n!?:\n" (last args) "\n\n")
+     (let [v (last args)]
+       `~v)))
+
 #?(:clj
-   (defmacro !?+ [v] `(do ~v)))
+   (defmacro !?+ [& args]
+     #_(println "\n!?+:\n" (last args) "\n\n")
+     (let [v (last args)]
+       `~v)))
 
 (defn helper [form-meta]
   #?(:clj
@@ -207,7 +215,7 @@
            label   (when (and label*
                               (not (when (string? label*) (string/blank? label*)))
                               (not (nil? label*)))
-                     (if (:clj? m)
+                     (if (:clj-c? m)
                        (ansi/italic (str ansi/cyan-font "; " label* ansi/reset-font))
                        (str "%c; " label* "%c")))
            warning (cond
