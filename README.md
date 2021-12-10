@@ -2,6 +2,8 @@
 
 A Clojure(Script) library designed to print-and-return values.
 
+[![Clojars Project](https://img.shields.io/clojars/v/org.clojars.paintparty/kushi.svg)](https://clojars.org/org.clojars.paintparty/par)
+
 Intended to wrap existing forms in your source code so they can be observed without changing the execution of the program.
 
 ## Usage
