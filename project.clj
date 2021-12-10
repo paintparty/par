@@ -7,4 +7,5 @@
                  [io.aviso/pretty "1.1"]
                  [zprint "1.2.0"]]
   :repl-options {:init-ns par.core}
-  :deploy-repositories [["releases"  {:sign-releases false :url "https://repo.clojars.org"}]])
+  :deploy-repositories [["clojars" {:url "https://clojars.org/repo"
+                                    :sign-releases false}]])
