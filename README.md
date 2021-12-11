@@ -7,7 +7,7 @@ A Clojure(Script) library designed to print-and-return values.
 Intended to wrap existing forms in your source code so they can be observed without changing the execution of the program.
 
 <br>
-<img src="doc/par-demo3.gif" width="880" border="1"/><br/>
+<img src="doc/par-demo3.gif" width="880" border="1"/>
 The screen recording above shows the editor (left), and Chrome DevTools Console.<br/>
 
 The sequence of edits demonstrates each of the 3 arities for `par.core/?`.
