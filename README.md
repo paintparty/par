@@ -7,8 +7,8 @@ A Clojure(Script) library designed to print-and-return values.
 Intended to wrap existing forms in your source code so they can be observed without changing the execution of the program.
 
 <br>
-<img src="doc/par-demo3.gif" width="880" border="1"/>
-The screen recording above shows the editor (left), and Chrome DevTools Console.<br/>
+<img src="doc/par-demo4.gif" width="880" border="1"/>
+The screen recording above shows the editor (left), and Chrome DevTools Console (right).<br/>
 
 The sequence of edits demonstrates each of the 3 arities for `par.core/?`.
 
@@ -42,7 +42,7 @@ Use the `par.core/?` macro to print the form and resulting value. You should exp
 ```Clojure
 (? (+ 1 2))
 ```
-The above will print:
+The example above would print the following:
 
 ```Clojure
 (+ 1 2) => 3
@@ -56,7 +56,8 @@ The above will print:
 ```
 The above will prepend the first argument to the output.<br>
 The output will be italicized, with a leading "; ".<br>
-The form that is being evaluated will **not** be printed:
+The form that is being evaluated will not be printed.<br>
+The example above would print the following:
 
 ```Clojure
 ; Note to self
@@ -69,7 +70,7 @@ The form that is being evaluated will **not** be printed:
 ```Clojure
 (?+ "Note to self" :form (+ 1 2))
 ```
-The above would print:
+The example above would print the following:
 
 ```Clojure
 ; Note to self
