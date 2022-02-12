@@ -8,6 +8,9 @@
 
 (def lib-defs (set '(def defn defrecord defstruct defprotocol defmulti deftype defmethod defstyles defstyle)))
 
+(def browser-secondary-color "rgb(10, 136, 179)")
+(def browser-secondary-style (str "color:" browser-secondary-color ";font-style:italic"))
+
 (defn zp [s]
   #?(:cljs
      (try (zprint/zprint-str s
@@ -80,7 +83,7 @@
       (or long-ret?
           (or (nil? form)
               (long-form? form)))
-       "\n ")
+       "\n")
      (str c fat-arrow* c " "))))
 
 (defn ?*
@@ -117,7 +120,7 @@
       form
       fat-arrow
       ret
-      (when-not browser? (str "\n" file-info))
+      (str "\n" (if browser? (str "\n%c" file-info "%c") file-info))
       "\n"])))
 
 #?(:clj
@@ -138,11 +141,11 @@
            file*       (str (ns-name *ns*) ":" line ":" column)
            clj-c?       (contains? #{"clj" "cljc"} (last (string/split (str *file*) #"\.")))
            file-info   (if clj-c?
-                         (str ansi/cyan-font file* ansi/reset-font)
+                         (ansi/italic (str ansi/cyan-font file* ansi/reset-font))
                          file*)
-                         arrow-char "=>"
+           arrow-char "=>"
            fat-arrow* (if clj-c?
-                        (str ansi/bold-magenta-font arrow-char ansi/reset-font)
+                        (str ansi/yellow-font arrow-char ansi/reset-font)
                         arrow-char)]
        {:file-info  file-info
         :fat-arrow* fat-arrow*
@@ -196,9 +199,11 @@
               (remove nil?
                       (list
                        logstring
-                       (when label "color:rgb(10, 140, 183);font-style:italic")
+                       (when label browser-secondary-style)
                        (when label "color:inherit;font-style:normal")
-                       "color:magenta;font-weight:bold"
+                       "color:#aa0;font-weight:normal"
+                       "color:inherit;font-weight:normal"
+                       browser-secondary-style
                        "color:inherit;font-weight:normal"))))))
 
 (defn opts* [args form]
