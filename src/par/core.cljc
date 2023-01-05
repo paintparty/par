@@ -1,36 +1,21 @@
 (ns par.core
   (:require [clojure.string :as string]
             [clojure.pprint :refer [pprint]]
-            [clojure.walk :as walk]
-            [zprint.core :as zprint])
+            [clojure.walk :as walk])
   #?(:clj  (:require [io.aviso.ansi :as ansi]))
-  #?(:cljs (:require-macros [par.core :refer [? !? ?+ !?+]])))
+  #?(:cljs (:require-macros [par.core :refer [? !?]])))
 
 (def lib-defs (set '(def defn defrecord defstruct defprotocol defmulti deftype defmethod defstyles defstyle)))
 
 (def browser-secondary-color "rgb(10, 136, 179)")
 (def browser-secondary-style (str "color:" browser-secondary-color ";font-style:italic"))
 
-(defn zp [s]
-  #?(:cljs
-     (try (zprint/zprint-str s
-                             {:parse-string-all? true
-                              :style [:community :justified :all-hang :hiccup :map-nl]
-                              :width 50
-                              :vector {:indent 1}})
-          (catch js/Object e "zprint-error" )))
-  #?(:clj
-     (try (zprint/zprint-str s
-                             {:parse-string-all? true
-                              :style [:community :justified :all-hang :hiccup :map-nl]
-                              :width 50
-                              :vector {:indent 1}})
-          (catch Exception e "zprint-error" ))))
 
-(defn format-val [x]
-  (cond (string? x) (str "\"" x "\"")
-        (nil? x) :____nil____
-        :else x))
+(defn format-val [x ?+?]
+  ;; Take this out when swapping in new pretty-print
+  (if (nil? x)
+    :____nil____
+    x))
 
 (defn find-index [pred coll]
   (first
@@ -58,15 +43,10 @@
   (string/replace s #":____nil____" "nil"))
 
 (defn formatted-str
-  "If called from ?, use zprint.
-   If called from ?+, use pprint."
   [x* ?+?]
   (let [x (if (coll? x*) (walk/postwalk anonymize x*) x*)
-        formatted (format-val x)
-        ret* (if ?+?
-               (-> formatted pprint with-out-str (string/replace #"\n$" ""))
-               (let [ret (-> x format-val str zp)]
-                 (if (re-find #"^clojure\.lang\..*\n@.*$" ret) "zprint-error" ret)))
+        formatted  (format-val x ?+?)
+        ret* (-> formatted pprint with-out-str (string/replace #"\n$" ""))
         ret (-> ret* print-nil (string/replace #"\(fn\* " "#("))]
     ret))
 
@@ -93,11 +73,12 @@
            fat-arrow*
            ?+?
            label
+           js-console?
            clj-c?
            browser?
            form?]
     :as m}]
-  #_(pprint m)
+  #_(pprintln m)
   (let [seqy?     (seq? qv)
         def?      (and seqy? (contains? lib-defs (first qv)))
         form      (when form? (str (formatted-str qv ?+?) " "))
@@ -126,12 +107,6 @@
 #?(:clj
    (defmacro !? [& args]
      #_(println "\n!?:\n" (last args) "\n\n")
-     (let [v (last args)]
-       `~v)))
-
-#?(:clj
-   (defmacro !?+ [& args]
-     #_(println "\n!?+:\n" (last args) "\n\n")
      (let [v (last args)]
        `~v)))
 
@@ -164,47 +139,44 @@
 (defn logger
   [{{:keys [warning
             file-info
+            qv
             label
-            ?+?]}   :opts
-    logstring         :logstring}]
+            ?+?
+            js-console?]}   :opts
+    logstring               :logstring
+    v                       :v}]
   #?(:clj
-     (if (re-find #"zprint-error" logstring)
-       (println (if-not ?+?
-                  (str ansi/bold-red-font
-                       "\nError: "
-                       ansi/reset-font
-                       ansi/bold-font
-                       "par.core/?\n"
-                       ansi/reset-font
-                       "at "
-                       file-info "\n"
-                       "If you are trying to use par.core/? from within a defmacro (or supporting function), please try par.core/?+ instead.")
-                  (str "Error: par.core/?+, " file-info " ")))
-       (let [{:keys [warning fatal?]} warning]
-         (when warning
-           (println
-            (str ansi/bold-magenta-font
-                 "\nWARNING!: "
-                 ansi/reset-font
-                 ansi/bold-font
-                 warning
-                 ansi/bold-font
-                 " : "
-                 file-info)))
-         (when-not fatal? (println logstring)))))
+     (let [{:keys [warning fatal?]} warning]
+       (when warning
+         (println
+          (str ansi/bold-magenta-font
+               "\nWARNING!: "
+               ansi/reset-font
+               ansi/bold-font
+               warning
+               ansi/bold-font
+               " : "
+               file-info)))
+       (when-not fatal? (println logstring))))
   #?(:cljs
-     (.apply (.-log  js/console)
-             js/console
-             (into-array
-              (remove nil?
-                      (list
-                       logstring
-                       (when label browser-secondary-style)
-                       (when label "color:inherit;font-style:normal")
-                       "color:#aa0;font-weight:normal"
-                       "color:inherit;font-weight:normal"
-                       browser-secondary-style
-                       "color:inherit;font-weight:normal"))))))
+     (cond
+       js-console?
+       (if-not (and (list? qv) (= 'keyed (first qv)))
+         (js/console.log qv v)
+         (js/console.log v))
+       :else
+       (.apply (.-log  js/console)
+               js/console
+               (into-array
+                (remove nil?
+                        (list
+                         logstring
+                         (when label browser-secondary-style)
+                         (when label "color:inherit;font-style:normal")
+                         "color:#aa0;font-weight:normal"
+                         "color:inherit;font-weight:normal"
+                         browser-secondary-style
+                         "color:inherit;font-weight:normal")))))))
 
 (defn opts* [args form]
   #?(:clj
@@ -225,12 +197,12 @@
                        (str "%c; " label* "%c")))
            warning (cond
                      (= numargs 0)
-                     {:warning "par.core/?+ expects at least 1 arg"
+                     {:warning "par.core/? expects at least 1 arg"
                       :fatal? true}
 
                      (and (= numargs 3)
                           (not= (second args) :form))
-                     {:warning "Did you mean to pass `:form` to par.core/?+, (as the 2nd arg)?"})
+                     {:warning "Did you mean to pass `:form` to par.core/?, (as the 2nd arg)?"})
            opts* (merge m {:label label
                            :form? form?
                            :warning warning})]
@@ -242,17 +214,18 @@
         :opts* opts*})))
 
 #?(:clj
-   (defmacro ?+
+   (defmacro ?j
      [& args]
      (let [{:keys [v opts*]} (opts* args &form)]
        `(do
           (let [opts# (merge ~opts*
                              {:v ~v
                               :qv (quote ~v)
-                              :?+? true
+                              :?+? false
+                              :js-console? true
                               :browser? (par.core/browser-test)})
                 logstring# (?* opts#)]
-            (logger {:logstring logstring# :opts opts#}))
+            (logger {:logstring logstring# :opts opts# :v ~v}))
           ~v))))
 
 #?(:clj
