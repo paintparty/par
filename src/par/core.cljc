@@ -140,9 +140,10 @@
             qv
             label
             ?+?
-            js-console?]}   :opts
-    logstring               :logstring
-    v                       :v}]
+            js-console?
+            form?] :as opts} :opts
+    logstring                :logstring
+    v                        :v}]
   #?(:clj
      (let [{:keys [warning fatal?]} warning]
        (when warning
@@ -160,8 +161,26 @@
      (cond
        js-console?
        (if-not (and (list? qv) (= 'keyed (first qv)))
-         (js/console.log qv v)
-         (js/console.log v))
+         (.apply (.-log  js/console)
+                 js/console
+                 (into-array
+                  (remove nil?
+                          (let [label (some-> label
+                                              (subs 2)
+                                              drop-last
+                                              drop-last
+                                              string/join)
+                                long-form? (long-form? (str v))]
+                            (list
+                             (str " " file-info "\n")
+                             label
+                             (when (and label form?) "\n")
+                             (when form? qv)
+                             "=>"
+                             (when long-form? "\n")
+                             v)))))
+         (do (prn "2")
+             (js/console.log v)))
        :else
        (.apply (.-log  js/console)
                js/console
@@ -169,12 +188,12 @@
                 (remove nil?
                         (list
                          logstring
-                         (when label browser-secondary-style)
-                         (when label "color:inherit;font-style:normal")
-                         "color:#aa0;font-weight:normal"
-                         "color:inherit;font-weight:normal"
-                         browser-secondary-style
-                         "color:inherit;font-weight:normal")))))))
+                         "color:#9e9e9e;font-style:italic;line-height:1.5;"
+                         (when label "color:inherit;font-style:normal;line-height:1.5;")
+                         (when label "color:#42aae1;font-weight:normal;line-height:1.5;")
+                         "color:inherit;font-weight:normal;line-height:1.5;"
+                         "color:#58c958;font-weight:normal;line-height:1.5;"
+                         "color:inherit;font-weight:normal;line-height:1.5;")))))))
 
 (defn opts* [args form]
   #?(:clj
