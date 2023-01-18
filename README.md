@@ -44,11 +44,6 @@ Import into your namespace:
 (ns myns.core
   (:require
     [par.core :refer [? !? ?j !?j]]))
-
-;; :refer-macros syntax will work as well.
-(ns myns.core
-  (:require
-    [par.core :refer-macros [? !? ?j !?j]]))
 ```
 
 <br>
