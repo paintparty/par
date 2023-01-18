@@ -8,8 +8,6 @@
 (def lib-defs (set '(def defn defrecord defstruct defprotocol defmulti deftype defmethod defstyles defstyle)))
 
 (def browser-secondary-color "rgb(10, 136, 179)")
-(def browser-secondary-style (str "color:" browser-secondary-color ";font-style:italic"))
-
 
 (defn format-val [x ?+?]
   ;; Take this out when swapping in new pretty-print
