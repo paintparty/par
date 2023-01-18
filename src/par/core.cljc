@@ -9,7 +9,7 @@
 
 (def browser-secondary-color "rgb(10, 136, 179)")
 
-(defn format-val [x ?+?]
+(defn format-val [x]
   ;; Take this out when swapping in new pretty-print
   (if (nil? x)
     :____nil____
@@ -41,9 +41,9 @@
   (string/replace s #":____nil____" "nil"))
 
 (defn formatted-str
-  [x* ?+?]
+  [x*]
   (let [x (if (coll? x*) (walk/postwalk anonymize x*) x*)
-        formatted  (format-val x ?+?)
+        formatted  (format-val x)
         ret* (-> formatted pprint with-out-str (string/replace #"\n$" ""))
         ret (-> ret* print-nil (string/replace #"\(fn\* " "#("))]
     ret))
@@ -54,57 +54,45 @@
         (> (count x) 30))))
 
 (defn fat-arrow
-  [fat-arrow* browser? long-ret? form]
+  [fat-arrow* browser?]
   (let [c (when browser? "%c")]
-    (str
-     (when
-      (or long-ret?
-          (or (nil? form)
-              (long-form? form)))
-       "\n")
-     (str c fat-arrow* c " "))))
+    (str " " c fat-arrow* c " ")))
 
 (defn ?*
   [{:keys [v
            qv
            file-info
            fat-arrow*
-           ?+?
            label
            js-console?
            clj-c?
            browser?
            form?]
     :as m}]
-  #_(pprintln m)
   (let [seqy?     (seq? qv)
         def?      (and seqy? (contains? lib-defs (first qv)))
-        form      (when form? (str (formatted-str qv ?+?) " "))
+        form      (when form? (str (formatted-str qv)))
         ret*      (if def?
                     (symbol (str "#'" (namespace ::x) "/" (second qv)))
-                    (formatted-str v ?+?))
+                    (formatted-str v))
         long-ret? (long-form? ret*)
         ret       (if long-ret? (str "\n" ret*) ret*)
-        fat-arrow (fat-arrow fat-arrow* browser? long-ret? form)]
-    #_(pprint {:label label
-             :clj-c? clj-c?
-             :long-ret? long-ret?
-             :form form
-             :ret* ret*
-             :ret ret
-             :fat-arrow* fat-arrow*
-             :fat-arrow fat-arrow})
+        fat-arrow (fat-arrow fat-arrow* browser?)]
     (string/join
-     [(if label (str "\n" label (when form "\n")) (when form "\n"))
+     [(str (if browser? (str "\n%c" file-info "%c") (str "\n" file-info)))
+      (if label (str "\n" label (when form "\n")) (when form "\n"))
       form
       fat-arrow
       ret
-      (str "\n" (if browser? (str "\n%c" file-info "%c") file-info))
       "\n"])))
 
 #?(:clj
    (defmacro !? [& args]
-     #_(println "\n!?:\n" (last args) "\n\n")
+     (let [v (last args)]
+       `~v)))
+
+#?(:clj
+   (defmacro !?j [& args]
      (let [v (last args)]
        `~v)))
 
@@ -118,7 +106,7 @@
                          file*)
            arrow-char "=>"
            fat-arrow* (if clj-c?
-                        (str ansi/yellow-font arrow-char ansi/reset-font)
+                        (str ansi/red-font arrow-char ansi/reset-font)
                         arrow-char)]
        {:file-info  file-info
         :fat-arrow* fat-arrow*
@@ -210,25 +198,25 @@
                               (not (when (string? label*) (string/blank? label*)))
                               (not (nil? label*)))
                      (if (:clj-c? m)
-                       (ansi/italic (str ansi/cyan-font "; " label* ansi/reset-font))
-                       (str "%c; " label* "%c")))
+                       (ansi/italic (str ansi/cyan-font label* ansi/reset-font))
+                       (str "%c" label* "%c")))
            warning (cond
                      (= numargs 0)
                      {:warning "par.core/? expects at least 1 arg"
-                      :fatal? true}
+                      :fatal?  true}
 
                      (and (= numargs 3)
                           (not= (second args) :form))
                      {:warning "Did you mean to pass `:form` to par.core/?, (as the 2nd arg)?"})
-           opts* (merge m {:label label
-                           :form? form?
-                           :warning warning})]
+           opts*   (merge m {:label   label
+                             :form?   form?
+                             :warning warning})]
        {:numargs numargs
-        :form form
-        :label* label*
-        :v v
-        :m m
-        :opts* opts*})))
+        :form    form
+        :label*  label*
+        :v       v
+        :m       m
+        :opts*   opts*})))
 
 #?(:clj
    (defmacro ?j
