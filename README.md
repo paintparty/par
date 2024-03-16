@@ -1,3 +1,6 @@
+# DEPRECATED
+Superseded by [Fireworks](https://github.com/paintparty/fireworks).
+
 # par
 
 
